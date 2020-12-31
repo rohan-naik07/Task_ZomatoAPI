@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".adapters.RestaurantActivity"
+    android:weightSum="100">
+
+    <ImageView
+        android:id="@+id/image"
+        android:layout_width="match_parent"
+        android:layout_height="180dp"
+        android:adjustViewBounds="true"
+        android:scaleType="fitXY"
+        android:src="@drawable/ic_launcher_background"
+        android:background="@color/white"/>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp">
+        <TextView
+            android:id="@+id/rest_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="bottom"
+            android:text="Hotel Name"
+            android:textSize="40dp"/>
+        <TextView
+            android:id="@+id/address"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/rest_name"
+            android:text="address"
+            android:textSize="20dp" />
+        <TextView
+            android:id="@+id/ratings"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@android:color/holo_orange_light"
+            android:layout_toRightOf="@id/rest_name"
+            android:text="Ratings"
+            android:layout_marginLeft="40dp"
+            android:padding="5dp"
+            android:textSize="20dp"
+            android:gravity="center"
+            android:textColor="@android:color/white"/>
+    </RelativeLayout>
+
+    <TextView
+        android:id="@+id/cuisines"
+        android:layout_width="match_parent"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_height="wrap_content"
+        android:text="cuisines"
+        android:textColor="@android:color/darker_gray"
+        android:textSize="20dp"
+        android:gravity="center"
+        android:padding="5dp"/>
+
+    <TextView
+        android:id="@+id/link"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:background="@drawable/bg_button"
+        android:text="website link"
+        android:textSize="20dp"
+        android:gravity="center"
+        android:textColor="@color/white"
+        android:padding="5dp"/>
+
+    <TextView
+        android:id="@+id/cost"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:background="@drawable/bg"
+        android:text="cost for two"
+        android:textSize="20dp"
+        android:gravity="center"
+        android:padding="5dp"/>
+
+    <TextView
+        android:id="@+id/delivery"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:background="@drawable/bg"
+        android:text="delivery"
+        android:textSize="20dp"
+        android:gravity="center"
+        android:padding="5dp"/>
+
+
+</androidx.appcompat.widget.LinearLayoutCompat>

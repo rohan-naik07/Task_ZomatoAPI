@@ -2,7 +2,9 @@ package com.example.task_app;
 
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -100,12 +102,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
               findViewById(R.id.imgButton).setOnClickListener(this);
               progressDialog.setMessage("Getting Restaurants Info..."); // show progess dialog till server responds
+              progressDialog.show();
               hotelViewModel.getHotelsList().observe(this,hotelsList->{
-                  progressDialog.show();
-                  RestaurantViewAdapter adapter = new RestaurantViewAdapter(getApplicationContext(),
-                          (List< Restaurant >) hotelsList.getObj());
                   progressDialog.dismiss();
-                  recyclerView.setAdapter(adapter);
+                  if(!hotelsList.isStatus()){
+                      AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+                      alertDialogBuilder.setTitle("Error")
+                              .setMessage(hotelsList.getMessage())
+                              .setNegativeButton("Ok", new DialogInterface.OnClickListener() {
+                          @Override
+                          public void onClick(DialogInterface dialog, int which) {
+                              dialog.cancel();
+                          }
+                      }).show();
+                  } else {
+                      RestaurantViewAdapter adapter = new RestaurantViewAdapter(getApplicationContext(),
+                              (List< Restaurant >) hotelsList.getObj());
+                      recyclerView.setAdapter(adapter);
+                  }
+
               });
           });
         });

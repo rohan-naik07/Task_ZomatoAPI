@@ -1,6 +1,7 @@
 package com.example.task_app.adapters;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -45,6 +46,14 @@ public class RestaurantViewAdapter extends RecyclerView.Adapter<RestaurantViewAd
             int Height = (int) (120 * scale);
             Picasso.with(context).load(imageUrl).resize(Width,Height).into(holder.hotelPhotoView);
         }
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent  = new Intent(context,RestaurantActivity.class);
+                intent.putExtra("info",restaurant);
+                holder.itemView.getContext().startActivity(intent);
+            }
+        });
     }
 
     @Override

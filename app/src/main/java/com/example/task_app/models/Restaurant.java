@@ -1,6 +1,10 @@
 package com.example.task_app.models;
 
-public class Restaurant {
+import android.os.Parcelable;
+
+import java.io.Serializable;
+
+public class Restaurant implements Serializable {
 
     private String id ;
     private String name;

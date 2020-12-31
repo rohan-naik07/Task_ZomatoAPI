@@ -2,10 +2,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="com.example.task_app">
+
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -13,7 +15,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Task_App">
-        <activity android:name=".MainActivity"
+        <activity android:name=".adapters.RestaurantActivity"></activity>
+        <activity
+            android:name=".MainActivity"
             android:windowSoftInputMode="adjustPan">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -21,6 +25,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <uses-library
             android:name="org.apache.http.legacy"
             android:required="false" />
@@ -28,8 +33,7 @@
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="12451000"
-            tools:replace="android:value"/>
-
+            tools:replace="android:value" />
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyAsrlYfrr2QkRGcv30zV-cUfGL_TECPDWs" />
