@@ -37,12 +37,14 @@
           android:textSize="30dp"/>
 
        <androidx.appcompat.widget.AppCompatTextView
-           android:id="@+id/number"
+           android:id="@+id/address"
            android:layout_width="match_parent"
            android:layout_height="wrap_content"
+           android:maxLines="2"
            android:layout_below="@id/name"
-           android:text="Phone No"
+           android:text="Address"
            android:textSize="20dp"/>
+
     </RelativeLayout>
 
 </androidx.appcompat.widget.LinearLayoutCompat>

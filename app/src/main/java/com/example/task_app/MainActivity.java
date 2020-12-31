@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -38,7 +39,7 @@ import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener{
     // location settings enabled
     private boolean settingsEnabled = false;
     // permission to access location
@@ -75,9 +76,8 @@ public class MainActivity extends AppCompatActivity {
         RecyclerView recyclerView = findViewById(R.id.recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setHasFixedSize(true);
-        progressDialog = new ProgressDialog(getApplicationContext());
-        progressDialog.setMessage("Getting Restaurants Info..."); // show progess dialog till server responds
-        progressDialog.show();
+        progressDialog = new ProgressDialog(MainActivity.this);
+
 
         locationViewModel.getLatitude().observe(this,latitude->{
             // fetch hotels from server
@@ -87,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
                       ,locationViewModel.getLongitude().getValue())
               ).get(HotelViewModel.class);
 
-              editText.addTextChangedListener(new TextWatcher() {
+              /*editText.addTextChangedListener(new TextWatcher() {
                   @Override
                   public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
                   @Override
@@ -96,9 +96,12 @@ public class MainActivity extends AppCompatActivity {
                   }
                   @Override
                   public void afterTextChanged(Editable s) {}
-              });
+              });*/ // search as you type
 
+              findViewById(R.id.imgButton).setOnClickListener(this);
+              progressDialog.setMessage("Getting Restaurants Info..."); // show progess dialog till server responds
               hotelViewModel.getHotelsList().observe(this,hotelsList->{
+                  progressDialog.show();
                   RestaurantViewAdapter adapter = new RestaurantViewAdapter(getApplicationContext(),
                           (List< Restaurant >) hotelsList.getObj());
                   progressDialog.dismiss();
@@ -171,5 +174,20 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    @Override
+    public void onClick(View v) {
+        progressDialog.setMessage("Getting Search Info..."); // show progess dialog till server responds
+        progressDialog.show();
+        hotelViewModel.getSearchList(editText.getText().toString());
+        progressDialog.dismiss();
+    }
+
+    @Override
+    public void onBackPressed() {
+        //super.onBackPressed();
+        editText.setText("");
+        hotelViewModel.getHotelsList();
     }
 }

@@ -37,6 +37,7 @@ public class RestaurantViewAdapter extends RecyclerView.Adapter<RestaurantViewAd
     public void onBindViewHolder(@NonNull ResViewHolder holder, int position) {
         Restaurant restaurant  = hotelsList.get(position);
         holder.hotelName.setText(restaurant.getName());
+        holder.hotelAddress.setText(restaurant.getAddress());
         String imageUrl = restaurant.getPhotoUrl();
         if(!imageUrl.equals("")){
             final float scale = context.getResources().getDisplayMetrics().density;
@@ -52,13 +53,14 @@ public class RestaurantViewAdapter extends RecyclerView.Adapter<RestaurantViewAd
     }
 
     class ResViewHolder extends RecyclerView.ViewHolder{
-        TextView hotelName;
+        TextView hotelName,hotelAddress;
         ImageView hotelPhotoView;
 
         public ResViewHolder(@NonNull View itemView) {
             super(itemView);
             hotelName = itemView.findViewById(R.id.name);
             hotelPhotoView = itemView.findViewById(R.id.photo);
+            hotelAddress = itemView.findViewById(R.id.address);
         }
     }
 }

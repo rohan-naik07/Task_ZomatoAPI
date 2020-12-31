@@ -47,7 +47,12 @@ public class HotelInfoRepository {
                                 object.get("id").getAsString(),
                                 object.get("name").getAsString(),
                                 object.get("url").getAsString(),
-                                object.get("featured_image").getAsString()
+                                object.get("featured_image").getAsString(),
+                                object.get("location").getAsJsonObject().get("address").getAsString(),
+                                object.get("cuisines").getAsString(),
+                                object.get("average_cost_for_two").getAsInt(),
+                                object.get("user_rating").getAsJsonObject().get("aggregate_rating").getAsFloat(),
+                                object.get("has_table_booking").getAsBoolean()
                                 ));
                     }
                     hotelsList.postValue(new ObjectModel(true,hotelslist, response.message()));
