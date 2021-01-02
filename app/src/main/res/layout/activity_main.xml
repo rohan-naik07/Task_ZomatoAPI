@@ -1,17 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:orientation="vertical"
-    android:weightSum="100"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+    <fragment
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:id="@+id/map"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
     <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="8"
+        android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:fitsSystemWindows="false"
         android:layout_margin="10dp"
@@ -22,18 +26,18 @@
         <androidx.appcompat.widget.AppCompatEditText
             android:id="@+id/search"
             android:layout_width="0dp"
-            android:layout_weight="70"
+            android:layout_weight="80"
             android:background="@android:color/transparent"
             android:gravity="center_vertical"
             android:layout_height="match_parent"
             android:maxLines="1"
-            android:hint="Search.."
+            android:hint="Search Restaurants.."
             android:padding="10dp" />
 
         <androidx.appcompat.widget.AppCompatImageButton
             android:id="@+id/imgButton"
             android:layout_width="0dp"
-            android:layout_weight="30"
+            android:layout_weight="20"
             android:layout_height="match_parent"
             android:background="@drawable/bg_button"
             android:src="@drawable/ic_baseline_search_24"/>
@@ -43,18 +47,10 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_view"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="87"
+        android:layout_gravity="bottom"
+        android:layout_height="wrap_content"
         android:layout_margin="10dp"
         tools:listitem="@layout/restaurant" />
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="5"
-        android:text="Click on restaurant to view details"
-        android:layout_gravity="bottom"
-        android:gravity="center"
-        />
 
-</androidx.appcompat.widget.LinearLayoutCompat>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

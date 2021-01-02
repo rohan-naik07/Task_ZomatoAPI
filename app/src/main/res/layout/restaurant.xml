@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
+    android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_margin="10dp"
@@ -12,38 +12,45 @@
 <androidx.appcompat.widget.LinearLayoutCompat
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:gravity="center"
     android:padding="10dp"
-    android:orientation="horizontal"
+    android:orientation="vertical"
     android:weightSum="100">
 
     <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/photo"
-        android:layout_width="0dp"
-        android:layout_weight="30"
-        android:layout_height="match_parent"
+        android:layout_width="150dp"
+        android:layout_weight="70"
+        android:layout_height="150dp"
         android:src="@drawable/common_full_open_on_phone"/>
 
     <RelativeLayout
-        android:layout_width="0dp"
-        android:layout_weight="70"
-        android:layout_marginLeft="20dp"
-        android:layout_height="match_parent">
+        android:layout_width="match_parent"
+        android:layout_weight="30"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:layout_height="0dp">
 
       <androidx.appcompat.widget.AppCompatTextView
           android:id="@+id/name"
+          android:gravity="center"
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
+          android:maxLines="1"
           android:text="Name"
-          android:textSize="30dp"/>
+          android:textSize="20dp"/>
 
        <androidx.appcompat.widget.AppCompatTextView
            android:id="@+id/address"
+           android:gravity="center"
            android:layout_width="match_parent"
            android:layout_height="wrap_content"
+           android:background="@drawable/bg_button"
            android:maxLines="2"
+           android:textColor="@android:color/white"
            android:layout_below="@id/name"
-           android:text="Address"
-           android:textSize="20dp"/>
+           android:text="View Details"
+           android:textSize="15dp"/>
 
     </RelativeLayout>
 

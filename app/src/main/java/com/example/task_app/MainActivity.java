@@ -6,6 +6,8 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
+import android.location.Address;
+import android.location.Geocoder;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
@@ -26,22 +28,38 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResponse;
 import com.google.android.gms.location.SettingsClient;
+import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener{
+import static android.widget.LinearLayout.HORIZONTAL;
+import static com.google.gson.reflect.TypeToken.get;
+
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, OnMapReadyCallback {
     // location settings enabled
     private boolean settingsEnabled = false;
     // permission to access location
@@ -55,6 +73,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private HotelViewModel hotelViewModel;
     private EditText editText;
     private ProgressDialog progressDialog;
+    private RecyclerView recyclerView;
+    // to style map location marker
+    private static MarkerOptions markerOptions;
+    private Marker markerYourLocation;
+    private List<Marker> markerList;
+    private static boolean markerSetFlag = true;
+    private Address address;
+    private String locality;
+
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
@@ -63,7 +90,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
 
         locationViewModel = new ViewModelProvider(this).get(LocationViewModel.class);
-        editText = (EditText)findViewById(R.id.search);
+        editText = findViewById(R.id.search);
 
         checkLocationSettings();
         if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION)
@@ -75,56 +102,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             // request results are returned in onRequestPermissionsResult function
         }
 
-        RecyclerView recyclerView = findViewById(R.id.recycler_view);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView = findViewById(R.id.recycler_view);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         recyclerView.setHasFixedSize(true);
         progressDialog = new ProgressDialog(MainActivity.this);
-
-
-        locationViewModel.getLatitude().observe(this,latitude->{
-            // fetch hotels from server
-          locationViewModel.getLongitude().observe(this,longitude->{
-              hotelViewModel = new ViewModelProvider(this,new MyViewModelFactory(
-                      locationViewModel.getLatitude().getValue()
-                      ,locationViewModel.getLongitude().getValue())
-              ).get(HotelViewModel.class);
-
-              /*editText.addTextChangedListener(new TextWatcher() {
-                  @Override
-                  public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-                  @Override
-                  public void onTextChanged(CharSequence s, int start, int before, int count) {
-                        hotelViewModel.getSearchList(editText.getText().toString());
-                  }
-                  @Override
-                  public void afterTextChanged(Editable s) {}
-              });*/ // search as you type
-
-              findViewById(R.id.imgButton).setOnClickListener(this);
-              progressDialog.setMessage("Getting Restaurants Info..."); // show progess dialog till server responds
-              progressDialog.show();
-              hotelViewModel.getHotelsList().observe(this,hotelsList->{
-                  progressDialog.dismiss();
-                  if(!hotelsList.isStatus()){
-                      AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
-                      alertDialogBuilder.setTitle("Error")
-                              .setMessage(hotelsList.getMessage())
-                              .setNegativeButton("Ok", new DialogInterface.OnClickListener() {
-                          @Override
-                          public void onClick(DialogInterface dialog, int which) {
-                              dialog.cancel();
-                          }
-                      }).show();
-                  } else {
-                      RestaurantViewAdapter adapter = new RestaurantViewAdapter(getApplicationContext(),
-                              (List< Restaurant >) hotelsList.getObj());
-                      recyclerView.setAdapter(adapter);
-                  }
-
-              });
-          });
-        });
-        //set adapter
+        markerList = new ArrayList<Marker>();
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        SupportMapFragment mapFragment = (SupportMapFragment) fragmentManager.findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
     }
 
 
@@ -157,6 +142,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onResume() {
         super.onResume();
         locationViewModel.startLocationUpdates();
+        markerSetFlag = true;
     }
 
     @Override
@@ -204,5 +190,87 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //super.onBackPressed();
         editText.setText("");
         hotelViewModel.getHotelsList();
+    }
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+
+        locationViewModel.getLatitude().observe(this,latitude->{
+            // fetch hotels from server
+            locationViewModel.getLongitude().observe(this,longitude->{
+
+                Geocoder geocoder = new Geocoder(getApplicationContext());
+                try {
+                    address = geocoder.getFromLocation(
+                            latitude,
+                            longitude,
+                            1).get(0);
+                    locality = address.getSubLocality();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                hotelViewModel = new ViewModelProvider(this,new MyViewModelFactory(
+                        locationViewModel.getLatitude().getValue()
+                        ,locationViewModel.getLongitude().getValue(),locality)
+                ).get(HotelViewModel.class);
+
+                findViewById(R.id.imgButton).setOnClickListener(this);
+                progressDialog.setMessage("Getting Restaurants Info..."); // show progess dialog till server responds
+                progressDialog.show();
+                hotelViewModel.getHotelsList().observe(this,hotelsList->{
+                    progressDialog.dismiss();
+                    if(!hotelsList.isStatus()){
+                        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+                        alertDialogBuilder.setTitle("Error")
+                                .setMessage(hotelsList.getMessage())
+                                .setNegativeButton("Ok", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        dialog.cancel();
+                                    }
+                                }).show();
+                    } else {
+                        googleMap.clear();
+                        markerList.clear();
+                        List<Restaurant> restaurantList =  (List< Restaurant >) hotelsList.getObj();
+                        RestaurantViewAdapter adapter = new RestaurantViewAdapter(getApplicationContext(),restaurantList);
+                        recyclerView.setAdapter(adapter);
+
+                        if(markerYourLocation!=null){
+                            markerYourLocation.remove();
+                        }
+
+                        LatLng coordinates = new LatLng(latitude,longitude);
+                        markerOptions = new MarkerOptions().position(coordinates).title("Current Position")
+                                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+                        markerYourLocation = googleMap.addMarker(markerOptions);
+
+                        if(markerSetFlag){
+                            CameraPosition camPos = new CameraPosition.Builder()
+                                    .target(coordinates)
+                                    .zoom(18)
+                                    .tilt(70)
+                                    .build();
+                            CameraUpdate camUpd3 = CameraUpdateFactory.newCameraPosition(camPos);
+                            googleMap.animateCamera(camUpd3);
+                            markerSetFlag = false;
+                        }
+
+                        for(Restaurant restaurant : restaurantList){
+                            LatLng hotelcoordinates = new LatLng(Double.parseDouble(restaurant.getLatitude())
+                                    ,Double.parseDouble(restaurant.getLongitude()));
+                            markerOptions = new MarkerOptions()
+                                    .position(hotelcoordinates).title(restaurant.getName())
+                                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET));
+                            Marker markerHotelLocation = googleMap.addMarker(markerOptions);
+                            markerList.add(markerHotelLocation);
+                        }
+                    }
+
+                });
+            });
+        });
+        //set adapter
     }
 }

@@ -12,17 +12,46 @@ public class Restaurant implements Serializable {
     private String photoUrl;
     private String address;
     private String cuisines;
+    private String timings;
+    private String phoneNumbers;
+    private String menuUrl;
+    private String latitude;
+    private String longitude;
     private Integer costforTwo;
     private Float avgRating;
     private boolean hasOnlinedelivery;
 
-    public Restaurant(String id, String name, String url, String photoUrl, String address, String cuisines, Integer costforTwo, Float avgRating, boolean hasOnlinedelivery) {
+    public Restaurant(String id, String name, String url, String photoUrl,
+                      String address, String cuisines, String timings,
+                      String phoneNumbers, String menuUrl, String latitude,
+                      String longitude, Integer costforTwo, Float avgRating, boolean hasOnlinedelivery) {
         this.id = id;
         this.name = name;
         this.url = url;
         this.photoUrl = photoUrl;
         this.address = address;
         this.cuisines = cuisines;
+        this.timings = timings;
+        this.phoneNumbers = phoneNumbers;
+        this.menuUrl = menuUrl;
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.costforTwo = costforTwo;
+        this.avgRating = avgRating;
+        this.hasOnlinedelivery = hasOnlinedelivery;
+    }
+    public Restaurant(String id, String name, String url, String photoUrl,
+                      String address, String cuisines, String menuUrl, String latitude,
+                      String longitude, Integer costforTwo, Float avgRating, boolean hasOnlinedelivery) {
+        this.id = id;
+        this.name = name;
+        this.url = url;
+        this.photoUrl = photoUrl;
+        this.address = address;
+        this.cuisines = cuisines;
+        this.menuUrl = menuUrl;
+        this.latitude = latitude;
+        this.longitude = longitude;
         this.costforTwo = costforTwo;
         this.avgRating = avgRating;
         this.hasOnlinedelivery = hasOnlinedelivery;
@@ -33,6 +62,46 @@ public class Restaurant implements Serializable {
         this.name = name;
         this.url = url;
         this.photoUrl = photoUrl;
+    }
+
+    public String getTimings() {
+        return timings;
+    }
+
+    public void setTimings(String timings) {
+        this.timings = timings;
+    }
+
+    public String getPhoneNumbers() {
+        return phoneNumbers;
+    }
+
+    public void setPhoneNumbers(String phoneNumbers) {
+        this.phoneNumbers = phoneNumbers;
+    }
+
+    public String getMenuUrl() {
+        return menuUrl;
+    }
+
+    public void setMenuUrl(String menuUrl) {
+        this.menuUrl = menuUrl;
+    }
+
+    public String getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(String latitude) {
+        this.latitude = latitude;
+    }
+
+    public String getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(String longitude) {
+        this.longitude = longitude;
     }
 
     public String getAddress() {

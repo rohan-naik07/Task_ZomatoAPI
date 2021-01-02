@@ -24,6 +24,7 @@ public class ClientInstance {
             HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
             interceptor.level(HttpLoggingInterceptor.Level.BODY);
             OkHttpClient okHttpClient = new OkHttpClient.Builder()
+                    .addInterceptor(interceptor)
                     .addInterceptor(new MyOkHttpInterceptor()).build();
 
             Gson gson = new GsonBuilder()

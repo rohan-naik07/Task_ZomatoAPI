@@ -14,6 +14,22 @@ public interface GetDataService {
     @Headers("Content-Type: application/json")
     Call<JsonObject> getRestaurants(@Query("lat") String latitude, @Query("lon") String longitude );
 
+    @GET("locations")
+    @Headers("Content-Type: application/json")
+    Call<JsonObject> getLocation(
+            @Query("query") String query,
+            @Query("lat") String latitude,
+            @Query("lon") String longitude,
+            @Query("count") String count
+    );
+
+    @GET("location_details")
+    @Headers("Content-Type: application/json")
+    Call<JsonObject> getNearbyRestaurants(
+            @Query("entity_id") String entity_id,
+            @Query("entity_type") String entity_type
+    );
+
     @GET("search")
     @Headers("Content-Type: application/json")
     Call<JsonObject> getSearchResults(

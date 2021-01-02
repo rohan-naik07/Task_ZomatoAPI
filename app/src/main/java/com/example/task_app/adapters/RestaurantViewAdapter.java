@@ -38,7 +38,6 @@ public class RestaurantViewAdapter extends RecyclerView.Adapter<RestaurantViewAd
     public void onBindViewHolder(@NonNull ResViewHolder holder, int position) {
         Restaurant restaurant  = hotelsList.get(position);
         holder.hotelName.setText(restaurant.getName());
-        holder.hotelAddress.setText(restaurant.getAddress());
         String imageUrl = restaurant.getPhotoUrl();
         if(!imageUrl.equals("")){
             final float scale = context.getResources().getDisplayMetrics().density;
@@ -46,13 +45,10 @@ public class RestaurantViewAdapter extends RecyclerView.Adapter<RestaurantViewAd
             int Height = (int) (120 * scale);
             Picasso.with(context).load(imageUrl).resize(Width,Height).into(holder.hotelPhotoView);
         }
-        holder.itemView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent  = new Intent(context,RestaurantActivity.class);
-                intent.putExtra("info",restaurant);
-                holder.itemView.getContext().startActivity(intent);
-            }
+        holder.itemView.setOnClickListener(v -> {
+            Intent intent  = new Intent(context,RestaurantActivity.class);
+            intent.putExtra("info",restaurant);
+            holder.itemView.getContext().startActivity(intent);
         });
     }
 
@@ -62,14 +58,13 @@ public class RestaurantViewAdapter extends RecyclerView.Adapter<RestaurantViewAd
     }
 
     class ResViewHolder extends RecyclerView.ViewHolder{
-        TextView hotelName,hotelAddress;
+        TextView hotelName;
         ImageView hotelPhotoView;
 
         public ResViewHolder(@NonNull View itemView) {
             super(itemView);
             hotelName = itemView.findViewById(R.id.name);
             hotelPhotoView = itemView.findViewById(R.id.photo);
-            hotelAddress = itemView.findViewById(R.id.address);
         }
     }
 }

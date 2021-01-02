@@ -11,9 +11,9 @@ import androidx.lifecycle.ViewModelProvider;
 
 public class HotelViewModel extends ViewModel {
     private final HotelInfoRepository hotelInfoRepository;
-    public HotelViewModel (Double latitude,Double longitude){
+    public HotelViewModel (Double latitude,Double longitude,String locality){
         super();
-        hotelInfoRepository = new HotelInfoRepository(latitude,longitude);
+        hotelInfoRepository = new HotelInfoRepository(latitude,longitude,locality);
     }
 
     public LiveData<ObjectModel> getHotelsList(){
