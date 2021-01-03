@@ -198,6 +198,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         locationViewModel.getLatitude().observe(this,latitude->{
             // fetch hotels from server
             locationViewModel.getLongitude().observe(this,longitude->{
+                editText.setText(latitude.toString());
 
                 Geocoder geocoder = new Geocoder(getApplicationContext());
                 try {
