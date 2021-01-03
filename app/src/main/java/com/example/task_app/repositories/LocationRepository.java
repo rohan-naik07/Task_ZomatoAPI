@@ -42,16 +42,13 @@ public class LocationRepository {
         public void onLocationResult(LocationResult locationResult) {
             super.onLocationResult(locationResult);
             Location lastLocation = locationResult.getLastLocation();
-            Toast.makeText(context,"Location",Toast.LENGTH_LONG);
             latitude.setValue(lastLocation.getLatitude());
             longitude.setValue(lastLocation.getLongitude());
         }
     };
 
-
     protected LocationRequest createLocationRequest() {
         LocationRequest locationRequest = LocationRequest.create();
-        locationRequest.setInterval(600000);
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         return locationRequest;
     }

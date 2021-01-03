@@ -104,17 +104,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         editText = findViewById(R.id.search);
         coordinatorLayout = findViewById(R.id.main);
         inputMethodManager = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-
-        checkLocationSettings();
-        if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED && settingsEnabled) {
-            // if user has already given permission
-            locationViewModel.startLocationUpdates();
-        } else {
-            requestPermissions(LOCATION_PERMS, MY_PERMISSION_ACCESS_FINE_LOCATION); // request to allow location
-            // request results are returned in onRequestPermissionsResult function
-        }
-
         recyclerView = findViewById(R.id.recycler_view);
         recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         recyclerView.setHasFixedSize(true);
@@ -122,15 +111,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         alertDialogBuilder = new AlertDialog.Builder(this);
         markerList = new ArrayList<Marker>();
 
-        if(settingsEnabled){
-            FragmentManager fragmentManager = getSupportFragmentManager();
-            SupportMapFragment mapFragment = (SupportMapFragment) fragmentManager.findFragmentById(R.id.map);
-            mapFragment.getMapAsync(this);
+        checkLocationSettings();
+        if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED && settingsEnabled) {
+            // if user has already given permission
+            locationViewModel.startLocationUpdates();
+            StartMap();
         } else {
-            alertDialogBuilder.setTitle("Error")
-                    .setMessage("You must enable your location settings")
-                    .setNegativeButton("Ok", (dialog, which) -> dialog.cancel()).show();
+            requestPermissions(LOCATION_PERMS, MY_PERMISSION_ACCESS_FINE_LOCATION); // request to allow location
+            // request results are returned in onRequestPermissionsResult function
         }
+
+    }
+
+    public void StartMap(){
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        SupportMapFragment mapFragment = (SupportMapFragment) fragmentManager.findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
     }
 
 
@@ -146,9 +143,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     // Permission is granted. Continue the action or workflow
                     // in your app.
                     locationViewModel.startLocationUpdates();
-                    settingsEnabled = true;
+                    StartMap();
                 } else {
-                    settingsEnabled = false;
+                    alertDialogBuilder.setTitle("Error")
+                            .setMessage("You must allow your location access")
+                            .setNegativeButton("Ok", (dialog, which) -> dialog.cancel()).show();
                 }
                 return;
         }
@@ -183,12 +182,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Task<LocationSettingsResponse> task = client.checkLocationSettings(builder.build());
         task.addOnSuccessListener(this, locationSettingsResponse -> {
             // All location settings are satisfied.
-            settingsEnabled = true;
+           return;
         });
 
         task.addOnFailureListener(this, e -> {
             if (e instanceof ResolvableApiException) {
-                settingsEnabled = false;
+                alertDialogBuilder.setTitle("Error")
+                        .setMessage("You must enable your location settings")
+                        .setNegativeButton("Ok", (dialog, which) -> dialog.cancel()).show();
             }
         });
     }
@@ -228,10 +229,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         locationViewModel.getLatitude().observe(this,latitude->{
             // fetch hotels from server
             locationViewModel.getLongitude().observe(this,longitude->{
-                editText.setText(latitude.toString());
 
-                setLatitude(latitude);
-                setLongitude(longitude);
+                setLatitude(locationViewModel.getLatitude().getValue());
+                setLongitude(locationViewModel.getLongitude().getValue());
 
                 Geocoder geocoder = new Geocoder(getApplicationContext());
                 try {
@@ -243,6 +243,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+
+                if(movableMarker!=null){
+                    movableMarker.remove();
+                }
+
 
                 movableMarker = googleMap.addMarker(new MarkerOptions()
                         .position(new LatLng(latitude+1,longitude+1))
@@ -278,6 +283,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         // TODO Auto-generated method stub
                         Log.i("System out", "onMarkerDrag...");
                     }
+                });
+
+                googleMap.setOnMapLongClickListener(latLng -> {
+                    movableMarker.setPosition(latLng);
+                    Address addressTemp = null;
+                    try {
+                        addressTemp = geocoder.getFromLocation(
+                                latLng.latitude,
+                                latLng.longitude,
+                                1).get(0);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    String localitytemp = addressTemp.getSubLocality();
+                    hotelViewModel.getHotelsList(latLng.latitude,latLng.longitude,localitytemp);
+                    adapter.notifyDataSetChanged();
+                    googleMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
                 });
 
                 hotelViewModel = new ViewModelProvider(this).get(HotelViewModel.class);

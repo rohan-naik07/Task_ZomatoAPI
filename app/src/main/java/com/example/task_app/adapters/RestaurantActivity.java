@@ -79,4 +79,10 @@ public class RestaurantActivity extends AppCompatActivity {
             startActivity(callIntent);
         });
     }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        this.finish();
+    }
 }
