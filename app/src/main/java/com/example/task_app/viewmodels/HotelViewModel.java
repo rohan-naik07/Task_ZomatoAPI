@@ -11,18 +11,20 @@ import androidx.lifecycle.ViewModelProvider;
 
 public class HotelViewModel extends ViewModel {
     private final HotelInfoRepository hotelInfoRepository;
-    public HotelViewModel (Double latitude,Double longitude,String locality){
+    public HotelViewModel (){
         super();
-        hotelInfoRepository = new HotelInfoRepository(latitude,longitude,locality);
+        hotelInfoRepository = new HotelInfoRepository();
     }
 
-    public LiveData<ObjectModel> getHotelsList(){
-        return hotelInfoRepository.getHotelsList();
+    public LiveData<ObjectModel> getHotelsList(Double latitude, Double longitude, String locality){
+        return hotelInfoRepository.getHotelsList(latitude,longitude,locality);
     };
 
-    public LiveData<ObjectModel> getSearchList(String query){
-        return hotelInfoRepository.getSearchList(query);
+    public LiveData<ObjectModel> getSearchList(Double latitude, Double longitude,String query){
+        return hotelInfoRepository.getSearchList(latitude,longitude,query);
     }
+
+
 
 }
 

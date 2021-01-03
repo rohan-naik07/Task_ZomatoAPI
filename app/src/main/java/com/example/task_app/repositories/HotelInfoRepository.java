@@ -21,19 +21,13 @@ import retrofit2.Response;
 public class HotelInfoRepository {
     final MutableLiveData<ObjectModel> hotelsList;
     final GetDataService getDataService;
-    private Double latitude;
-    private Double longitude;
-    private String locality;
 
-    public HotelInfoRepository(Double latitude,Double longitude,String locality){
+    public HotelInfoRepository(){
         hotelsList = new MutableLiveData<ObjectModel>();
         getDataService = ClientInstance.getRetrofitInstance().create(GetDataService.class);
-        this.latitude = latitude;
-        this.longitude = longitude;
-        this.locality = locality;
     }
 
-    public MutableLiveData<ObjectModel> getHotelsList(){
+    public MutableLiveData<ObjectModel> getHotelsList(Double latitude, Double longitude, String locality){
 
         getDataService.getLocation(locality,latitude.toString(),longitude.toString(),"1").enqueue(new Callback<JsonObject>() {
             @Override
@@ -117,7 +111,7 @@ public class HotelInfoRepository {
         return hotelsList;
     }
 
-    public MutableLiveData<ObjectModel> getSearchList(String query){
+    public MutableLiveData<ObjectModel> getSearchList(Double latitude, Double longitude, String query){
         String entityType = "zone";
         String count = "5";
         String sort = "rating";

@@ -4,25 +4,25 @@ package com.example.task_app;
 import android.Manifest;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.drawable.Drawable;
 import android.location.Address;
 import android.location.Geocoder;
 import android.os.Build;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
-import android.widget.Toast;
 
 import com.example.task_app.adapters.RestaurantViewAdapter;
 import com.example.task_app.models.Restaurant;
-import com.example.task_app.repositories.LocationRepository;
 import com.example.task_app.viewmodels.HotelViewModel;
 import com.example.task_app.viewmodels.LocationViewModel;
-import com.example.task_app.viewmodels.MyViewModelFactory;
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
@@ -49,39 +49,50 @@ import java.util.List;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.core.content.ContextCompat;
+import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import static android.widget.LinearLayout.HORIZONTAL;
 import static com.google.gson.reflect.TypeToken.get;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, OnMapReadyCallback {
-    // location settings enabled
-    private boolean settingsEnabled = false;
-    // permission to access location
-    private final int MY_PERMISSION_ACCESS_FINE_LOCATION = 12; // passed back to you on completion to differentiate on request from other
 
+    private boolean settingsEnabled = true; // location settings enabled
+    private final int MY_PERMISSION_ACCESS_FINE_LOCATION = 12; // passed back to you on completion to differentiate on request from other
     private static final String[] LOCATION_PERMS = {
             Manifest.permission.ACCESS_FINE_LOCATION
     };
-
     private LocationViewModel locationViewModel;
     private HotelViewModel hotelViewModel;
     private EditText editText;
     private ProgressDialog progressDialog;
     private RecyclerView recyclerView;
-    // to style map location marker
     private static MarkerOptions markerOptions;
     private Marker markerYourLocation;
     private List<Marker> markerList;
     private static boolean markerSetFlag = true;
+    private static boolean hasMarkerMoved = true;
+    private static Marker movableMarker;
     private Address address;
     private String locality;
+    private Double latitude;
+    private Double longitude;
+    private RestaurantViewAdapter adapter;
+    private AlertDialog.Builder alertDialogBuilder;
+    private CoordinatorLayout coordinatorLayout;
+    private InputMethodManager inputMethodManager;
 
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
+    }
+
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
+    }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
@@ -91,6 +102,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         locationViewModel = new ViewModelProvider(this).get(LocationViewModel.class);
         editText = findViewById(R.id.search);
+        coordinatorLayout = findViewById(R.id.main);
+        inputMethodManager = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
 
         checkLocationSettings();
         if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION)
@@ -106,10 +119,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         recyclerView.setHasFixedSize(true);
         progressDialog = new ProgressDialog(MainActivity.this);
+        alertDialogBuilder = new AlertDialog.Builder(this);
         markerList = new ArrayList<Marker>();
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        SupportMapFragment mapFragment = (SupportMapFragment) fragmentManager.findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
+
+        if(settingsEnabled){
+            FragmentManager fragmentManager = getSupportFragmentManager();
+            SupportMapFragment mapFragment = (SupportMapFragment) fragmentManager.findFragmentById(R.id.map);
+            mapFragment.getMapAsync(this);
+        } else {
+            alertDialogBuilder.setTitle("Error")
+                    .setMessage("You must enable your location settings")
+                    .setNegativeButton("Ok", (dialog, which) -> dialog.cancel()).show();
+        }
     }
 
 
@@ -125,6 +146,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     // Permission is granted. Continue the action or workflow
                     // in your app.
                     locationViewModel.startLocationUpdates();
+                    settingsEnabled = true;
+                } else {
+                    settingsEnabled = false;
                 }
                 return;
         }
@@ -157,22 +181,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder();
         SettingsClient client = LocationServices.getSettingsClient(getApplicationContext());
         Task<LocationSettingsResponse> task = client.checkLocationSettings(builder.build());
-        task.addOnSuccessListener(this, new OnSuccessListener<LocationSettingsResponse>() {
-            @Override
-            public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
-                // All location settings are satisfied. The client can initialize
-                // location requests here.
-                // ...
-                settingsEnabled = true;
-            }
+        task.addOnSuccessListener(this, locationSettingsResponse -> {
+            // All location settings are satisfied.
+            settingsEnabled = true;
         });
 
-        task.addOnFailureListener(this, new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                if (e instanceof ResolvableApiException) {
-                    settingsEnabled = false;
-                }
+        task.addOnFailureListener(this, e -> {
+            if (e instanceof ResolvableApiException) {
+                settingsEnabled = false;
             }
         });
     }
@@ -181,7 +197,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View v) {
         progressDialog.setMessage("Getting Search Info..."); // show progess dialog till server responds
         progressDialog.show();
-        hotelViewModel.getSearchList(editText.getText().toString());
+        inputMethodManager.hideSoftInputFromWindow(coordinatorLayout.getWindowToken(), 0);
+        if(editText.getText().toString().equals("")){
+            alertDialogBuilder.setTitle("Error")
+                    .setMessage("You must provide a query!")
+                    .setNegativeButton("Ok", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.cancel();
+                        }
+                }).show();
+            progressDialog.dismiss();
+            return;
+        }
+        hotelViewModel.getSearchList(latitude,longitude,editText.getText().toString());
+        adapter.notifyDataSetChanged();
         progressDialog.dismiss();
     }
 
@@ -189,16 +219,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onBackPressed() {
         //super.onBackPressed();
         editText.setText("");
-        hotelViewModel.getHotelsList();
+        hotelViewModel.getHotelsList(latitude,longitude,locality);
+        adapter.notifyDataSetChanged();
     }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
-
         locationViewModel.getLatitude().observe(this,latitude->{
             // fetch hotels from server
             locationViewModel.getLongitude().observe(this,longitude->{
                 editText.setText(latitude.toString());
+
+                setLatitude(latitude);
+                setLongitude(longitude);
 
                 Geocoder geocoder = new Geocoder(getApplicationContext());
                 try {
@@ -211,18 +244,51 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     e.printStackTrace();
                 }
 
-                hotelViewModel = new ViewModelProvider(this,new MyViewModelFactory(
-                        locationViewModel.getLatitude().getValue()
-                        ,locationViewModel.getLongitude().getValue(),locality)
-                ).get(HotelViewModel.class);
+                movableMarker = googleMap.addMarker(new MarkerOptions()
+                        .position(new LatLng(latitude+1,longitude+1))
+                        .icon(BitmapDescriptorFactory.fromBitmap(getBitmapFromVectorDrawable(this,R.drawable.ic_baseline_edit_location_alt_24)))
+                        .draggable(true));
+
+
+                googleMap.setOnMarkerDragListener(new GoogleMap.OnMarkerDragListener() {
+                    @Override
+                    public void onMarkerDragStart(Marker arg0) {
+                        // TODO Auto-generated method stub
+                        Log.d("System out", "onMarkerDragStart..."+arg0.getPosition().latitude+"..."+arg0.getPosition().longitude);
+                    }
+
+                    @SuppressWarnings("unchecked")
+                    @Override
+                    public void onMarkerDragEnd(Marker arg0) {
+                        try {
+                            Address addressTemp = geocoder.getFromLocation(
+                                    arg0.getPosition().latitude,
+                                    arg0.getPosition().longitude,
+                                     1).get(0);
+                            String localitytemp = addressTemp.getSubLocality();
+                            hotelViewModel.getHotelsList(arg0.getPosition().latitude,arg0.getPosition().longitude,localitytemp);
+                            adapter.notifyDataSetChanged();
+                            googleMap.animateCamera(CameraUpdateFactory.newLatLng(arg0.getPosition()));
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    @Override
+                    public void onMarkerDrag(Marker arg0) {
+                        // TODO Auto-generated method stub
+                        Log.i("System out", "onMarkerDrag...");
+                    }
+                });
+
+                hotelViewModel = new ViewModelProvider(this).get(HotelViewModel.class);
 
                 findViewById(R.id.imgButton).setOnClickListener(this);
                 progressDialog.setMessage("Getting Restaurants Info..."); // show progess dialog till server responds
                 progressDialog.show();
-                hotelViewModel.getHotelsList().observe(this,hotelsList->{
+
+                hotelViewModel.getHotelsList(latitude,longitude,locality).observe(this,hotelsList->{
                     progressDialog.dismiss();
                     if(!hotelsList.isStatus()){
-                        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
                         alertDialogBuilder.setTitle("Error")
                                 .setMessage(hotelsList.getMessage())
                                 .setNegativeButton("Ok", new DialogInterface.OnClickListener() {
@@ -232,10 +298,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     }
                                 }).show();
                     } else {
-                        googleMap.clear();
+                        for(Marker marker : markerList){
+                            marker.remove();
+                        }
                         markerList.clear();
                         List<Restaurant> restaurantList =  (List< Restaurant >) hotelsList.getObj();
-                        RestaurantViewAdapter adapter = new RestaurantViewAdapter(getApplicationContext(),restaurantList);
+                        adapter = new RestaurantViewAdapter(getApplicationContext(),restaurantList);
                         recyclerView.setAdapter(adapter);
 
                         if(markerYourLocation!=null){
@@ -246,6 +314,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         markerOptions = new MarkerOptions().position(coordinates).title("Current Position")
                                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
                         markerYourLocation = googleMap.addMarker(markerOptions);
+                        markerList.add(markerYourLocation);
 
                         if(markerSetFlag){
                             CameraPosition camPos = new CameraPosition.Builder()
@@ -268,10 +337,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             markerList.add(markerHotelLocation);
                         }
                     }
-
                 });
             });
         });
-        //set adapter
+    }
+
+    public static Bitmap getBitmapFromVectorDrawable(Context context, int drawableId) {
+        Drawable drawable = ContextCompat.getDrawable(context, drawableId);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+            drawable = (DrawableCompat.wrap(drawable)).mutate();
+        }
+
+        Bitmap bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(),
+                drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+        drawable.draw(canvas);
+
+        return bitmap;
     }
 }

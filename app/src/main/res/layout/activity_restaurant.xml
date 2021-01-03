@@ -27,7 +27,8 @@
             android:layout_height="wrap_content"
             android:gravity="bottom"
             android:text="Hotel Name"
-            android:textSize="40dp"/>
+            android:textSize="30dp"/>
+
         <TextView
             android:id="@+id/address"
             android:layout_width="wrap_content"
@@ -40,24 +41,26 @@
             android:id="@+id/ratings"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@android:color/holo_orange_light"
+            android:background="@drawable/ratings_bg"
             android:layout_toRightOf="@id/rest_name"
             android:text="Ratings"
-            android:layout_marginLeft="40dp"
+            android:layout_marginLeft="20dp"
             android:padding="5dp"
             android:textSize="20dp"
             android:gravity="center"
             android:textColor="@android:color/white"/>
+
+        <TextView
+            android:id="@+id/timings"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/address"
+            android:paddingLeft="10dp"
+            android:text="Timings Unavailable"
+            android:textSize="20dp" />
+
     </RelativeLayout>
 
-    <TextView
-        android:id="@+id/timings"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/address"
-        android:paddingLeft="10dp"
-        android:text="Timings Unavailable"
-        android:textSize="20dp" />
 
     <TextView
         android:id="@+id/cuisines"
