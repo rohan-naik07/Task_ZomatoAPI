@@ -10,31 +10,26 @@ import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.model.LatLng;
+
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 
 public class LocationRepository {
     private FusedLocationProviderClient fusedLocationClient;
-    private MutableLiveData<Double> latitude;
-    private MutableLiveData<Double> longitude;
+    private MutableLiveData<LatLng> coordinates;
     private Context context;
 
     public LocationRepository(Context context) {
         this.fusedLocationClient = LocationServices.getFusedLocationProviderClient(context);
-        this.latitude = new MutableLiveData<Double>();
-        this.longitude = new MutableLiveData<Double>();
+        this.coordinates = new MutableLiveData<LatLng>();
         this.context = context;
     }
 
-    public MutableLiveData<Double> getLatitude() {
-        return latitude;
+    public MutableLiveData<LatLng> getCoordinates(){
+        return coordinates;
     }
-
-    public MutableLiveData<Double> getLongitude() {
-        return longitude;
-    }
-
 
     // callback to update location after specified interval
     private LocationCallback locationCallback = new LocationCallback() {
@@ -42,8 +37,7 @@ public class LocationRepository {
         public void onLocationResult(LocationResult locationResult) {
             super.onLocationResult(locationResult);
             Location lastLocation = locationResult.getLastLocation();
-            latitude.setValue(lastLocation.getLatitude());
-            longitude.setValue(lastLocation.getLongitude());
+            coordinates.setValue(new LatLng(lastLocation.getLatitude(),lastLocation.getLongitude()));
         }
     };
 

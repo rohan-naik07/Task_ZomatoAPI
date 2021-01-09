@@ -3,6 +3,7 @@ package com.example.task_app.viewmodels;
 import android.app.Application;
 
 import com.example.task_app.repositories.LocationRepository;
+import com.google.android.gms.maps.model.LatLng;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
@@ -13,22 +14,16 @@ import androidx.lifecycle.ViewModel;
 public class LocationViewModel extends AndroidViewModel {
 
     private LocationRepository repository;
-    private LiveData<Double> latitude;
-    private LiveData<Double> longitude;
+   private LiveData<LatLng> coordinates;
 
-    public LiveData<Double> getLatitude() {
-        return latitude;
-    }
-
-    public LiveData<Double> getLongitude() {
-        return longitude;
+    public LiveData<LatLng> getCoordinates() {
+        return coordinates;
     }
 
     public LocationViewModel(@NonNull Application application) {
         super(application);
         repository = new LocationRepository(application);
-        latitude = repository.getLatitude();
-        longitude = repository.getLongitude();
+        coordinates = repository.getCoordinates();
     }
 
     public void startLocationUpdates(){
